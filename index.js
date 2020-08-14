@@ -1,6 +1,6 @@
 var express = require('express');
 var app = require('express')();
-var http = require('http').createServer(app);
+var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 app.use(express.static('public'));
@@ -32,6 +32,6 @@ io.on('connection', (socket) => {
 });
 io.emit('some event', { someProperty: 'some value', otherProperty: 'other value' }); // This will emit the event to all connected sockets
 
-http.listen(3000, () => {
+http.listen(5000, () => {
   console.log('listening on *:3000');
 });
