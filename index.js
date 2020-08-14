@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
         io.emit('chat message', msg);
     });
     socket.on('chat-stream', (msg) => {
-        console.log('stream', msg)
+        //console.log('stream', msg)
         io.emit('chat-stream', msg);
     })
 
