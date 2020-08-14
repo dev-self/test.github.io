@@ -1,14 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-	<head>
-		<title>Page Title</title>
-		<style>
-		    h1{
-		        text-align: 'center';
-		    }
-		</style>
-	</head>
-	<body>
-		<h1>Hello  World ..</h1>
-	</body>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      //#messages li:nth-child(odd) { background: #eee; }
+      li {
+        border: 0.5px solid;
+        border-radius: 4px;
+        padding: 2px; 
+        width: 300px;
+        left: 5px;
+        resize: both;
+        text-align: center;
+        }
+        ul {
+        width: 300px;
+        resize: both;
+        }
+    </style>
+  </head>
+  <body>
+    <ul id="messages"></ul><br>
+    <center><ul id="values"></ul></center>
+    <form action="">
+      <input id="ms" autocomplete="off" /><button>Send</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+      var socket = io();
+      $(function () {
+        $('#ms').on('input', updateValue)
+        $('form').submit(function(e) {
+          //e.preventDefault(); // prevents page reloading
+          socket.emit('chat message', $('#ms').val());
+          $('#ms').val('');
+          return false;
+        });
+        socket.on('chat message', function(msg){
+          $('#messages').append($('<br><li>').html(msg));
+            $('#values').html('');
+        });
+        socket.on('chat-stream', function(msg){
+            log.textContent = msg
+        });
+      });
+      //const input = document.querySelector('ms');
+        const log = document.getElementById('values');
+
+        //input.addEventListener('ms', updateValue);
+
+        function updateValue(e) {
+           log.textContent = e.target.value;
+           //console.log(e.target.value)
+           socket.emit('chat-stream', e.target.value)
+        }
+    </script>
+</body>
 </html>
