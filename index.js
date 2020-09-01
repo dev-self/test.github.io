@@ -1,38 +1,49 @@
-var PORT = process.env.PORT ||5000
-var express = require('express');
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+const http = require("http");
+const express = require("express");
+const socketio = require("socket.io");
+const path = require("path");
+var fs = require('fs')
 
+const app = express();
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
-var user = 0;
-io.on('connection', (socket) => {
-    user++;
-    socket.broadcast.emit('hi');
-    console.log('a user connected '+user);
-    setTimeout(function(){
-        socket.emit('chat message', 'selamat datang !!');
-    }, 5000)
-    socket.on('disconnect', () => {
-      user--;
-      console.log('user disconnected');
-    });
-    socket.on('chat message', (msg) => {
-        console.log('message: ' + msg);
-        io.emit('chat message', msg);
-    });
-    socket.on('chat-stream', (msg) => {
-        //console.log('stream', msg)
-        io.emit('chat-stream', msg);
-    })
+const httpserver = http.Server(app);
+const io = socketio(httpserver);
 
-});
-io.emit('some event', { someProperty: 'some value', otherProperty: 'other value' }); // This will emit the event to all connected sockets
+const gamedirectory = path.join(__dirname, "html");
 
-http.listen(PORT, () => {
-  console.log('listening on *:5000');
-});
+app.use(express.static(gamedirectory));
+
+httpserver.listen(9001);
+
+var rooms = [];
+var usernames = [];
+var count = []
+io.on('connection', function(socket){
+  count++
+  console.log('user connect '+count)
+  socket.on("join", function(room, username){
+    if (username != ""){
+      rooms[socket.id] = room;
+      usernames[socket.id] = username;
+      socket.leaveAll();
+      socket.join(room);
+      io.in(room).emit("recieve", "Server : " + username + " has entered the chat.");
+      
+      socket.emit("join", room);
+    }
+  })
+  socket.on("send", function(message){
+    io.in(rooms[socket.id]).emit("recieve", usernames[socket.id] +" : " + message);
+    console.log(socket)
+  })
+  socket.on("recieve", function(message){
+    socket.emit("recieve", message);
+  })
+  socket.on('disconnect', function() { count--;console.log('user disconnect '+count) });
+})
+
+
